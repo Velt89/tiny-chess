@@ -1,4 +1,4 @@
-import json,os,urllib.request as u
+import json,urllib.request as u
 V=dict(zip('PNBRQKpnbrqk',(100,320,330,500,1000,0)*2))
 S=('::::FFFF@@AB==>@;;<?;::=','024426:;4;<=4:=>4;=>4:<=26::0244',
 '::::<<<<'+':'*22+';;','<<;;'*8)
@@ -10,7 +10,7 @@ for p,t in zip('PNBRQK',S[:2]+S[1:3]+S[2:]):
 BD=(15,17,-15,-17);RD=(1,16,-1,-16);KG=BD+RD;KN=(14,18,31,33,-14,-18,-31,-33)
 RK={118:(119,117),114:(112,115),6:(7,5),2:(0,3)}
 CR={112:2,119:1,0:8,7:4}
-SQ=[s for s in range(128)if s&136<1];U=[]
+SQ=[s for s in range(128)if s&136<1];U=[];TT={}
 def atk(s,w):
  pn,nt,kg=('pnk','PNK')[w]
  for ds,ws in((KN,nt),(KG,kg),(BD,('bq','BQ')[w]),(RD,('rq','RQ')[w]),(((-15,-17),(15,17))[w],pn)):
@@ -26,8 +26,7 @@ def atk(s,w):
  return 0
 def gen(caps=0):
  ms=[];A=ms.append
- def add(s,t,pr):
-  for pc in((0,),(4,))[pr]:A(s|t<<7|pc<<14)
+ def add(s,t,pr):A(s|t<<7|pr<<16)
  for s in SQ:
   p=B[s]
   if p=='.'or p.isupper()!=W:continue
@@ -103,7 +102,7 @@ def se(d,a,b,ply):
   if sc>=b:return b
  ms=sorted(gen(cap),key=lambda m:-((9e8 if m==pv else 0)+(16*V[x]-V[B[m&127]]//16 if (x:=B[m>>7&127])!='.'else 0)));best,bm=-1e9,0
  for m in ms:
-  if cap and bm and not m>>14 and st+V[B[m>>7&127]]+150<a:continue
+  if cap and bm and st+V.get(B[m>>7&127],900)+150<a:continue
   mk(m)
   if atk(K[W],W):un();continue
   sc=-se(d-1,-b,-a,ply+1);un()
@@ -123,16 +122,16 @@ def bestmove(fen):
    if ch in'Kk':K[ch>'Z']=s
    s+=1
  W=ps[1]=='w';C=sum(1<<'KQkq'.index(c)for c in ps[2]if c in'KQkq')
- ND=0;BM=gen()[0];TT={}
+ ND=0;BM=gen()[0]
+ if len(TT)>2e5:TT.clear()
  for d in range(64):
   TM=None
   try:se(d,-1e9,1e9,0)
   except StopIteration:break
   BM=TM or BM
- m=BM;f=m&127;t=m>>7&127
- s=f"{chr(97+(f&7))}{8-f//16}{chr(97+(t&7))}{8-t//16}"
- return s+('q'if m>>14 else'')
-def post(pa,bo):return json.load(u.urlopen(os.getenv('MAKEFUN_ENV_URL')+pa,json.dumps(bo).encode()))
+ f=BM&127;t=BM>>7&127
+ return f"{chr(97+(f&7))}{8-f//16}{chr(97+(t&7))}{8-t//16}"+('q'if BM>>14 else'')
+def post(pa,bo):return json.load(u.urlopen(u.os.getenv('MAKEFUN_ENV_URL')+pa,json.dumps(bo).encode()))
 if __name__=='__main__':
  while 1:
   g=post('/game',{})
